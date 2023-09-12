@@ -10,7 +10,7 @@ use axum::{
 async fn main() -> Result<(), Box<dyn Error>> {
     let router = Router::new().route("/health", get(health_check_handler));
 
-    let addr = SocketAddr::from(([127, 0, 0, 1], 8080));
+    let addr = SocketAddr::from(([0, 0, 0, 0], 8080));
 
     axum::Server::bind(&addr)
         .serve(router.into_make_service())
