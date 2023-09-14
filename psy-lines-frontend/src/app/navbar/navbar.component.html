@@ -1,0 +1,10 @@
+<mat-toolbar color="primary">
+  <button class="icon-button" [routerLink]="['/']">
+    <img src="assets/eye-target.svg" alt="Icon" class="icon-image" />
+  </button>
+  <span class="nav-title" (click)="navigateToHome()">Psychic Sightlines</span>
+  <span class="spacer"></span>
+  <button mat-button [routerLink]="['/']">Home</button>
+  <button mat-button [routerLink]="['/feature1']">Feature1</button>
+  <button mat-button [routerLink]="['/feature2']">Feature2</button>
+</mat-toolbar>
