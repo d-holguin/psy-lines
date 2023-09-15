@@ -1,0 +1,13 @@
+canvas {
+  border: 1px solid #000;
+  background-color: #f0f0f0;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+  border-radius: 5px;
+}
+
+.canvas-container {
+  display: grid;
+  place-items: center;
+  height: 90vh;
+  width: 100%;
+}

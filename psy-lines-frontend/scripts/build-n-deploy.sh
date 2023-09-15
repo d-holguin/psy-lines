@@ -1,13 +1,12 @@
 #!/bin/bash
 
-
 cd "$(dirname "$0")"/..
 
 # Step 1: Build the Angular project (if not already built)
 ng build --configuration production
 
 # Step 2: Build the Docker image
-docker build -t gcr.io/psy-lines/psy-lines-frontend .
+docker build --no-cache -t gcr.io/psy-lines/psy-lines-frontend .
 
 # Step 3: Authenticate Docker to GCR
 gcloud auth configure-docker
