@@ -1,0 +1,8 @@
+<div id="canvas-wrapper">
+  <canvas #canvas
+          (pointerdown)="handlePointerDown($event)"
+          (pointermove)="handlePointerMove($event)"
+          (pointerleave)="handlePointerLeave()"
+          (pointerenter)="handlePointerEnter($event)">
+  </canvas>
+</div>
