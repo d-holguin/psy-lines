@@ -1,6 +1,11 @@
-
 <div class="drawing-container">
-  <app-drawing></app-drawing>
+  <app-drawing #drawingComponent></app-drawing>
+  <div>
+    <button (click)="drawingComponent.undo()">Undo</button>
+    <button (click)="drawingComponent.redo()">Redo</button>
+    <button (click)="drawingComponent.clear()">Clear</button>
+  </div>
+
 </div>
 
 

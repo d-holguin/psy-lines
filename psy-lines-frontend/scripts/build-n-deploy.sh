@@ -2,6 +2,13 @@
 
 cd "$(dirname "$0")"/..
 
+# Check if Docker is running
+docker info > /dev/null 2>&1
+if [ $? -ne 0 ]; then
+  echo "Docker is not running. Please start Docker and try again."
+  exit 1
+fi
+
 # Step 1: Build the Angular project (if not already built)
 ng build --configuration production
 
