@@ -24,55 +24,19 @@ export class DrawingComponent implements AfterViewInit {
     this.canvas = this.canvasRef.nativeElement!;
     this.context = this.canvas.getContext('2d')!;
 
-    const wrapper = document.getElementById('canvas-wrapper');
-
-    if (wrapper) {
-      const rect = wrapper.getBoundingClientRect();
-      this.canvas.width = rect.width;
-      this.canvas.height = rect.height;
-    }
-
     this.setCanvasDimensions();
 
+    // Attach a resize event listener to update dimensions if the window resizes
     window.addEventListener('resize', this.setCanvasDimensions.bind(this));
-
-    //offscreen canvas
-    this.offscreenCanvas.width = this.canvas.width;
-    this.offscreenCanvas.height = this.canvas.height;
-    this.offscreenContext.imageSmoothingEnabled = true;
   }
 
   setCanvasDimensions(): void {
-    const devicePixelRatio = window.devicePixelRatio || 1;
+    this.drawingService.setCanvasDimensions(this.canvas, this.context, this.offscreenCanvas, this.offscreenContext);
 
-    // Store the old dimensions
-    const oldWidth = this.canvas.width;
-    const oldHeight = this.canvas.height;
-
-    // Set the new dimensions
-    this.canvas.width = this.canvas.offsetWidth * devicePixelRatio;
-    this.canvas.height = this.canvas.offsetHeight * devicePixelRatio;
-
-    // Update the context scale
-    this.context.scale(devicePixelRatio, devicePixelRatio);
-    this.context.imageSmoothingEnabled = true;
-    this.context.lineJoin = 'round';
-    this.context.lineCap = 'round';
-
-    // Set the offscreen canvas dimensions
     this.offscreenCanvas.width = this.canvas.width;
     this.offscreenCanvas.height = this.canvas.height;
 
-    // Update the offscreen context properties
-    this.offscreenContext.imageSmoothingEnabled = true;
-    this.offscreenContext.lineJoin = 'round';
-    this.offscreenContext.lineCap = 'round';
-
-
-
-
-    // Update the main canvas with the contents of the offscreen canvas
-    this.updateMainCanvas();
+    this.redrawAllStrokesOnOffscreenCanvas();
   }
 
   redrawOffscreenCanvas(): void {
@@ -220,10 +184,11 @@ export class DrawingComponent implements AfterViewInit {
     this.handlePointerUp();
   }
 
-  @HostListener('pointerenter')
+  @HostListener('pointerenter', ['$event'])
   handlePointerEnter(event: PointerEvent): void {
-    // Only add a new point if a stroke is already in progress
-    if (this.isDrawing) {
+    // Check if the primary button (usually the left button) is pressed
+    if (event.buttons === 1) {
+      this.isDrawing = true;
       this.points.push({ x: event.offsetX, y: event.offsetY, pressure: event.pressure ?? 0.5 });
     }
   }

@@ -20,6 +20,29 @@ export class DrawingService {
 
   constructor() { }
 
+  setCanvasDimensions(canvas: HTMLCanvasElement, context: CanvasRenderingContext2D, offscreenCanvas: HTMLCanvasElement, offscreenContext: CanvasRenderingContext2D): void {
+    const devicePixelRatio = window.devicePixelRatio || 1;
+
+    // Set the new dimensions
+    canvas.width = canvas.offsetWidth * devicePixelRatio;
+    canvas.height = canvas.offsetHeight * devicePixelRatio;
+
+    // Update the context scale
+    context.scale(devicePixelRatio, devicePixelRatio);
+    context.imageSmoothingEnabled = true;
+    context.lineJoin = 'round';
+    context.lineCap = 'round';
+
+    // Set the offscreen canvas dimensions
+    offscreenCanvas.width = canvas.width;
+    offscreenCanvas.height = canvas.height;
+
+    // Update the offscreen context properties
+    offscreenContext.imageSmoothingEnabled = true;
+    offscreenContext.lineJoin = 'round';
+    offscreenContext.lineCap = 'round';
+  }
+
   undo(): void {
     if (this.strokeHistory.length > 0) {
       const lastStroke = this.strokeHistory.pop();

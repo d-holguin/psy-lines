@@ -4,6 +4,7 @@ import {HomeComponent} from "./home/home.component";
 
 const routes: Routes = [
   { path: '', component: HomeComponent },
+  { path: 'target-practice', loadChildren: () => import('./target-practice/target-practice.module').then(m => m.TargetPracticeModule) },
 
 ];
 
