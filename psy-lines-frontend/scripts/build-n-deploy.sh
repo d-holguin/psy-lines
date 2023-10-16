@@ -30,5 +30,4 @@ gcloud services enable run.googleapis.com
 # Step 7: Deploy the container image to Cloud Run
 gcloud run deploy psy-lines-frontend-service --image gcr.io/psy-lines/psy-lines-frontend --platform managed --allow-unauthenticated
 
-
 echo "Deployment completed."

@@ -31,16 +31,56 @@ export class DrawingComponent implements AfterViewInit {
   }
 
   setCanvasDimensions(): void {
+    // Store old dimensions
+    const oldWidth = this.canvas.width;
+    const oldHeight = this.canvas.height;
+
+    // Update dimensions
     this.drawingService.setCanvasDimensions(this.canvas, this.context, this.offscreenCanvas, this.offscreenContext);
 
-    this.offscreenCanvas.width = this.canvas.width;
-    this.offscreenCanvas.height = this.canvas.height;
+    // Check if dimensions have changed
+    if (this.canvas.width !== oldWidth || this.canvas.height !== oldHeight) {
+      // Rescale and redraw content
+      this.rescaleAndRedraw(oldWidth, oldHeight);
+    }
 
-    this.redrawAllStrokesOnOffscreenCanvas();
+    this.updateMainCanvas();
   }
 
+  rescaleAndRedraw(oldWidth: number, oldHeight: number): void {
+    // Calculate scale ratios
+    const xRatio = this.canvas.width / oldWidth;
+    const yRatio = this.canvas.height / oldHeight;
+
+    // Get the history from the service
+    let history = this.drawingService.getHistory();
+
+    // Clear the stroke history in the service
+    this.drawingService.clear();
+
+    // Rescale the stroke history based on the ratio and redraw
+    for (const stroke of history) {
+      const rescaledStroke = stroke.map(point => ({
+        x: point.x * xRatio,
+        y: point.y * yRatio,
+        pressure: point.pressure
+      }));
+
+      // Push each rescaledStroke back into the service
+      for (const point of rescaledStroke) {
+        this.drawingService.addToStroke(point);
+      }
+
+      this.drawingService.endStroke();
+    }
+
+    // Finally, update the canvas
+    this.updateMainCanvas();
+  }
+
+
+
   redrawOffscreenCanvas(): void {
-    // Get the last stroke from the drawing service and draw it onto the offscreen canvas
     const strokes = this.drawingService.getHistory();
     const lastStroke = strokes[strokes.length - 1];
     if (lastStroke) {
@@ -54,7 +94,6 @@ export class DrawingComponent implements AfterViewInit {
         this.offscreenContext.fill();
       }
     }
-
     // Update the main canvas with the contents of the offscreen canvas
     this.updateMainCanvas();
   }
@@ -121,22 +160,19 @@ export class DrawingComponent implements AfterViewInit {
 
   @HostListener('pointerdown', ['$event'])
   handlePointerDown(event?: PointerEvent): void {
-    if (!event) {
-      console.warn('handlePointerDown called without event');
-      return;
+    if (event && event.button == 0) {
+      this.isDrawing = true;
+      this.points.push({ x: event.offsetX, y: event.offsetY, pressure: event.pressure ?? 0.5 });
+      this.drawingService.startStroke({ x: event.offsetX, y: event.offsetY, pressure: event.pressure ?? 0.5 });
     }
-
-    this.isDrawing = true;
-    this.points.push({ x: event.offsetX, y: event.offsetY, pressure: event.pressure ?? 0.5 });
-    this.drawingService.startStroke({ x: event.offsetX, y: event.offsetY, pressure: event.pressure ?? 0.5 });
-
   }
 
 
   @HostListener('pointermove', ['$event'])
   handlePointerMove(event: PointerEvent): void {
     if (!this.isDrawing) return;
-
+    console.log('Pointer move triggered');
+    event.preventDefault();
     const point = { x: event.offsetX, y: event.offsetY, pressure: event.pressure ?? 0.5 };
     this.points.push(point);
     this.drawingService.addToStroke(point);
@@ -173,7 +209,7 @@ export class DrawingComponent implements AfterViewInit {
         for (const [x, y] of path) {
           this.context.lineTo(x, y);
         }
-        this.context.fill();  // Changed from fill() to stroke()
+        this.context.fill();
       }
     }
   }

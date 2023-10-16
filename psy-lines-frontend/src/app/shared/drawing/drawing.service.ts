@@ -9,6 +9,8 @@ export class DrawingService {
   private points: { x: number; y: number; pressure?: number }[] = [];
   private strokeHistory: { x: number; y: number; pressure?: number }[][] = [];
   private redoStack: { x: number; y: number; pressure?: number }[][] = [];
+  private canvasDimensions: { width: number; height: number } = { width: 0, height: 0 };
+
 
 
   private options: StrokeOptions = {
@@ -41,7 +43,11 @@ export class DrawingService {
     offscreenContext.imageSmoothingEnabled = true;
     offscreenContext.lineJoin = 'round';
     offscreenContext.lineCap = 'round';
+
+    this.canvasDimensions = { width: canvas.width, height: canvas.height };
+
   }
+
 
   undo(): void {
     if (this.strokeHistory.length > 0) {
