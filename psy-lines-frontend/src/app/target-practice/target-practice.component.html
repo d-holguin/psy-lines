@@ -1,16 +1,28 @@
-<mat-drawer-container class="sidenav-container">
-  <mat-drawer-content>
-    <div id="button-bar">
-      <button mat-raised-button (click)="drawer.toggle()">Settings</button>
-      <button mat-raised-button (click)="drawingComponent.undo()">Undo</button>
-      <button mat-raised-button (click)="drawingComponent.redo()">Redo</button>
-      <button mat-raised-button (click)="drawingComponent.clear()">Clear</button>
-    </div>
-    <div class="drawing-container">
-      <app-drawing #drawingComponent></app-drawing>
-    </div>
-  </mat-drawer-content>
-  <mat-drawer #drawer class="example-sidenav" mode="over">
-    <p>Auto-resizing sidenav</p>
-  </mat-drawer>
-</mat-drawer-container>
+<div class="container">
+  <mat-toolbar class="toolbar" id="button-bar">
+    <mat-button-toggle-group name="color" aria-label="Choose a color" value="#000000">
+      <mat-button-toggle *ngFor="let color of colors" [value]="color.value"
+                         (click)="drawingComponent.changeColor(color.value)"
+                         [ngStyle]="{'color': color.value}">
+        {{ color.name }}
+      </mat-button-toggle>
+    </mat-button-toggle-group>
+    <button mat-icon-button (click)="drawingComponent.undo()">
+      <mat-icon>undo</mat-icon>
+    </button>
+    <button mat-icon-button (click)="drawingComponent.redo()">
+      <mat-icon>redo</mat-icon>
+    </button>
+    <button mat-icon-button (click)="drawingComponent.clear()">
+      <mat-icon>delete</mat-icon>
+    </button>
+    <mat-button-toggle-group name="size" aria-label="Choose a stroke size" value="6">
+      <mat-button-toggle value="3" (click)="drawingComponent.changeStrokeSize(3)">Small</mat-button-toggle>
+      <mat-button-toggle value="6" (click)="drawingComponent.changeStrokeSize(6)">Medium</mat-button-toggle>
+      <mat-button-toggle value="9" (click)="drawingComponent.changeStrokeSize(9)">Large</mat-button-toggle>
+    </mat-button-toggle-group>
+  </mat-toolbar>
+  <div class="drawing-container">
+    <app-drawing #drawingComponent></app-drawing>
+  </div>
+</div>

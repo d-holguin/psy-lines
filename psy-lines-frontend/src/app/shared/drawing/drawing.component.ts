@@ -1,6 +1,8 @@
-import {AfterViewInit, Component, ElementRef, HostListener, OnInit, ViewChild} from '@angular/core';
-import {getStroke, StrokeOptions} from "perfect-freehand";
-import {DrawingService} from "./drawing.service";
+import {AfterViewInit, Component, ElementRef, HostListener, ViewChild} from '@angular/core';
+import {getStroke} from "perfect-freehand";
+import {DrawingService, Stroke} from "./drawing.service";
+
+
 
 @Component({
   selector: 'app-drawing',
@@ -11,11 +13,13 @@ export class DrawingComponent implements AfterViewInit {
   @ViewChild('canvas') canvasRef!: ElementRef;
   canvas!: HTMLCanvasElement;
   context!: CanvasRenderingContext2D;
-  strokes: { x: number; y: number; pressure?: number }[][] = [];
+  strokes: Stroke[] = [];
   points: { x: number; y: number; pressure?: number }[] = [];
   isDrawing: boolean = false;
-  private offscreenCanvas: HTMLCanvasElement = document.createElement('canvas');
-  private offscreenContext: CanvasRenderingContext2D = this.offscreenCanvas.getContext('2d')!;
+  private offscreenCanvas!: OffscreenCanvas;
+  private offscreenContext!: OffscreenCanvasRenderingContext2D;
+
+
 
   constructor(private drawingService: DrawingService) {}
 
@@ -23,6 +27,13 @@ export class DrawingComponent implements AfterViewInit {
   ngAfterViewInit(): void {
     this.canvas = this.canvasRef.nativeElement!;
     this.context = this.canvas.getContext('2d')!;
+
+
+    this.canvas.width = this.canvas.width * 2.25;
+    this.canvas.height = this.canvas.height * 2.25;
+
+    this.offscreenCanvas = new OffscreenCanvas(this.canvas.width, this.canvas.height);
+    this.offscreenContext = this.offscreenCanvas.getContext('2d')!;
 
     this.setCanvasDimensions();
 
@@ -37,6 +48,9 @@ export class DrawingComponent implements AfterViewInit {
 
     // Update dimensions
     this.drawingService.setCanvasDimensions(this.canvas, this.context, this.offscreenCanvas, this.offscreenContext);
+
+    this.offscreenCanvas.width = this.canvas.width;
+    this.offscreenCanvas.height = this.canvas.height;
 
     // Check if dimensions have changed
     if (this.canvas.width !== oldWidth || this.canvas.height !== oldHeight) {
@@ -60,16 +74,20 @@ export class DrawingComponent implements AfterViewInit {
 
     // Rescale the stroke history based on the ratio and redraw
     for (const stroke of history) {
-      const rescaledStroke = stroke.map(point => ({
+      const rescaledPoints = stroke.points.map(point => ({
         x: point.x * xRatio,
         y: point.y * yRatio,
         pressure: point.pressure
       }));
 
+      // Create a new Stroke object with the rescaled points and original color
+      const rescaledStroke: Stroke = {
+        points: rescaledPoints,
+        color: stroke.color
+      };
+
       // Push each rescaledStroke back into the service
-      for (const point of rescaledStroke) {
-        this.drawingService.addToStroke(point);
-      }
+      this.drawingService.addToHistory(rescaledStroke);
 
       this.drawingService.endStroke();
     }
@@ -84,7 +102,7 @@ export class DrawingComponent implements AfterViewInit {
     const strokes = this.drawingService.getHistory();
     const lastStroke = strokes[strokes.length - 1];
     if (lastStroke) {
-      const path = getStroke(lastStroke, this.drawingService.getDrawingOptions());
+      const path = getStroke(lastStroke.points, this.drawingService.getDrawingOptions());
       if (path) {
         this.offscreenContext.beginPath();
         this.offscreenContext.moveTo(path[0][0], path[0][1]);
@@ -99,22 +117,30 @@ export class DrawingComponent implements AfterViewInit {
   }
 
   undo(): void {
-    console.log("Undo");
     this.drawingService.undo();
     this.updateMainCanvas();
   }
 
   redo(): void {
-    console.log("Redo")
     this.drawingService.redo();
     this.updateMainCanvas();
   }
 
   clear(): void {
-    console.log("Cleared")
     this.drawingService.clear();
     this.updateMainCanvas();
   }
+
+  changeColor(color: string): void {
+    this.drawingService.setColorHex(color);
+    this.updateMainCanvas();
+  }
+
+  changeStrokeSize(size: number): void {
+    this.drawingService.setStrokeSize(size);
+    this.updateMainCanvas();
+  }
+
   updateMainCanvas(): void {
     this.redrawAllStrokesOnOffscreenCanvas();
 
@@ -135,7 +161,8 @@ export class DrawingComponent implements AfterViewInit {
 
     // Draw all the strokes onto the offscreen canvas
     for (const stroke of this.strokes) {
-      const path = getStroke(stroke, this.drawingService.getDrawingOptions());
+      this.offscreenContext.fillStyle = stroke.color;
+      const path = getStroke(stroke.points, this.drawingService.getDrawingOptions());
       if (path) {
         this.offscreenContext.beginPath();
         this.offscreenContext.moveTo(path[0][0], path[0][1]);
@@ -188,7 +215,10 @@ export class DrawingComponent implements AfterViewInit {
 
     // Draw each stroke from the history onto the main canvas
     for (const stroke of this.strokes) {
-      const path = getStroke(stroke, this.drawingService.getDrawingOptions());
+      // Set the color for each stroke
+      this.context.fillStyle = stroke.color;
+
+      const path = getStroke(stroke.points, this.drawingService.getDrawingOptions());
       if (path) {
         this.context.beginPath();
         this.context.moveTo(path[0][0], path[0][1]);
@@ -200,8 +230,15 @@ export class DrawingComponent implements AfterViewInit {
     }
 
     // Draw the current stroke (which is in progress) onto the main canvas
-    const { currentPoints } = this.drawingService.getStrokeData();
-    if (currentPoints.length > 0) {
+    const strokeData = this.drawingService.getStrokeData();
+    const currentPoints = strokeData.currentPoints;
+
+
+
+    if (currentPoints && currentPoints.length > 0) {
+      // Set the color for the current stroke
+      this.context.fillStyle = strokeData.currentColor || this.drawingService.getColorHex();  // Fallback to getColorHex if currentColor is null
+
       const path = getStroke(currentPoints, this.drawingService.getDrawingOptions());
       if (path) {
         this.context.beginPath();
@@ -213,6 +250,7 @@ export class DrawingComponent implements AfterViewInit {
       }
     }
   }
+
 
   @HostListener('pointerleave')
   handlePointerLeave(): void {
@@ -228,5 +266,4 @@ export class DrawingComponent implements AfterViewInit {
       this.points.push({ x: event.offsetX, y: event.offsetY, pressure: event.pressure ?? 0.5 });
     }
   }
-
 }

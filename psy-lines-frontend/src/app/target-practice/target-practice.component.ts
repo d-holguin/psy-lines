@@ -11,6 +11,17 @@ export class TargetPracticeComponent implements AfterViewInit {
 
   @ViewChild('drawingComponent') drawingComponent!: any;
 
+  colors = [
+    { name: 'Black', value: '#000000', isDark: true },
+    { name: 'Red', value: '#ff0000', isDark: true },
+    { name: 'Green', value: '#008000', isDark: true },
+    { name: 'Blue', value: '#0000ff', isDark: true },
+    { name: 'Yellow', value: '#ffff00', isDark: false },
+    { name: 'Orange', value: '#ffa500', isDark: false },
+    { name: 'Purple', value: '#800080', isDark: true }
+  ];
+
+
   constructor(
     private renderer: Renderer2,
     private el: ElementRef,

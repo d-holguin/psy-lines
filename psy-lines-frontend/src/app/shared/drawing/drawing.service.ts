@@ -1,16 +1,22 @@
 import { Injectable } from '@angular/core';
 import {StrokeOptions} from "perfect-freehand";
 
+
+export interface Stroke {
+  points: { x: number; y: number; pressure?: number }[];
+  color: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class DrawingService {
 
-  private points: { x: number; y: number; pressure?: number }[] = [];
-  private strokeHistory: { x: number; y: number; pressure?: number }[][] = [];
-  private redoStack: { x: number; y: number; pressure?: number }[][] = [];
+  private currentStroke: Stroke | null = null;
+  private strokeHistory: Stroke[] = [];
+  private redoStack: Stroke[] = [];
   private canvasDimensions: { width: number; height: number } = { width: 0, height: 0 };
-
+  private currentColor: string = '#000000';
 
 
   private options: StrokeOptions = {
@@ -22,7 +28,23 @@ export class DrawingService {
 
   constructor() { }
 
-  setCanvasDimensions(canvas: HTMLCanvasElement, context: CanvasRenderingContext2D, offscreenCanvas: HTMLCanvasElement, offscreenContext: CanvasRenderingContext2D): void {
+  setColorHex(hex: string) {
+    this.currentColor = hex;
+  }
+
+  setStrokeSize(newSize: number){
+    this.options.size = newSize;
+  }
+
+  getStrokeSize(): number | undefined {
+    return this.options.size;
+  }
+
+  getColorHex(): string {
+    return this.currentColor;
+  }
+
+  setCanvasDimensions(canvas: HTMLCanvasElement, context: CanvasRenderingContext2D, offscreenCanvas: OffscreenCanvas, offscreenContext: OffscreenRenderingContext): void {
     const devicePixelRatio = window.devicePixelRatio || 1;
 
     // Set the new dimensions
@@ -38,11 +60,6 @@ export class DrawingService {
     // Set the offscreen canvas dimensions
     offscreenCanvas.width = canvas.width;
     offscreenCanvas.height = canvas.height;
-
-    // Update the offscreen context properties
-    offscreenContext.imageSmoothingEnabled = true;
-    offscreenContext.lineJoin = 'round';
-    offscreenContext.lineCap = 'round';
 
     this.canvasDimensions = { width: canvas.width, height: canvas.height };
 
@@ -72,34 +89,44 @@ export class DrawingService {
     this.redoStack = [];
   }
 
-  getHistory(): { x: number; y: number; pressure?: number }[][] {
+  getHistory(): Stroke[] {
     return this.strokeHistory;
   }
 
 
   startStroke(point: { x: number; y: number; pressure?: number }): void {
-    this.points.push(point);
+    this.currentStroke = { points: [point], color: this.currentColor };
   }
 
   addToStroke(point: { x: number; y: number; pressure?: number }): void {
-    this.points.push(point);
-  }
-
-  endStroke(): void {
-    if (this.points.length) {
-      this.strokeHistory.push(this.points);
-      this.points = [];
+    if (this.currentStroke) {
+      this.currentStroke.points.push(point);
     }
   }
 
-  getStrokeData(): {strokes: any[], currentPoints: any[]} {
+  endStroke(): void {
+    if (this.currentStroke && this.currentStroke.points.length > 0) {
+      this.strokeHistory.push(this.currentStroke);
+      this.currentStroke = null;
+    }
+  }
+
+  getStrokeData(): { strokes: Stroke[], currentPoints: { x: number; y: number; pressure?: number }[] | null, currentColor: string | null } {
     return {
-        strokes: this.strokeHistory,
-      currentPoints: this.points
+      strokes: this.strokeHistory,
+      currentPoints: this.currentStroke ? this.currentStroke.points : null,
+      currentColor: this.currentStroke ? this.currentStroke.color : null
     };
   }
+
 
   getDrawingOptions(): StrokeOptions {
     return this.options;
   }
+
+  addToHistory(stroke: Stroke): void {
+    this.strokeHistory.push(stroke);
+  }
+
+
 }
