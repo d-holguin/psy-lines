@@ -1,4 +1,13 @@
-import {AfterViewInit, Component, ElementRef, EventEmitter, Output, Renderer2, ViewChild} from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  EventEmitter,
+  HostListener,
+  Output,
+  Renderer2,
+  ViewChild
+} from '@angular/core';
 import {NavBarService} from "../navbar/navbar.service";
 import {DrawingService} from "../shared/drawing/drawing.service";
 
@@ -42,5 +51,9 @@ export class TargetPracticeComponent implements AfterViewInit {
         this.drawingComponent.offscreenContext
       );
     });
+  }
+  @HostListener('document:touchmove', ['$event'])
+  preventTouchMove(event: TouchEvent): void {
+    event.preventDefault();
   }
 }
