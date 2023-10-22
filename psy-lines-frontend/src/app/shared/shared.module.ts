@@ -5,13 +5,14 @@ import { NavBarService } from '../navbar/navbar.service';
 
 
 @NgModule({
-  declarations: [
-    DrawingComponent,
-  ],
+    declarations: [
+        DrawingComponent,
+        DrawingComponent,
+    ],
   imports: [
     CommonModule
   ],
-  exports: [DrawingComponent]
+    exports: [DrawingComponent, DrawingComponent]
 })
 export class SharedModule {
 }

@@ -9,6 +9,7 @@ import {MatButtonModule} from "@angular/material/button";
 import {MatButtonToggleModule} from "@angular/material/button-toggle";
 import {MatToolbarModule} from "@angular/material/toolbar";
 import {MatIconModule} from "@angular/material/icon";
+import {MatInputModule} from "@angular/material/input";
 
 
 @NgModule({
@@ -24,6 +25,7 @@ import {MatIconModule} from "@angular/material/icon";
     MatButtonToggleModule,
     MatToolbarModule,
     MatIconModule,
+    MatInputModule,
   ]
 })
 export class TargetPracticeModule { }

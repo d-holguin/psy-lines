@@ -16,13 +16,31 @@
     <button mat-icon-button (click)="drawingComponent.clear()">
       <mat-icon>delete</mat-icon>
     </button>
-    <mat-button-toggle-group name="size" aria-label="Choose a stroke size" value="6">
-      <mat-button-toggle value="3" (click)="drawingComponent.changeStrokeSize(3)">Small</mat-button-toggle>
-      <mat-button-toggle value="6" (click)="drawingComponent.changeStrokeSize(6)">Medium</mat-button-toggle>
-      <mat-button-toggle value="9" (click)="drawingComponent.changeStrokeSize(9)">Large</mat-button-toggle>
-    </mat-button-toggle-group>
+    <button mat-icon-button (click)="saveDrawingAndNotes()">
+      <mat-icon>save</mat-icon>
+    </button>
+
+    <!--    <mat-button-toggle-group name="size" aria-label="Choose a stroke size" value="6">-->
+<!--      <mat-button-toggle value="3" (click)="drawingComponent.changeStrokeSize(3)">Small</mat-button-toggle>-->
+<!--      <mat-button-toggle value="6" (click)="drawingComponent.changeStrokeSize(6)">Medium</mat-button-toggle>-->
+<!--      <mat-button-toggle value="9" (click)="drawingComponent.changeStrokeSize(9)">Large</mat-button-toggle>-->
+<!--    </mat-button-toggle-group>-->
   </mat-toolbar>
   <div class="drawing-container">
+    <div>
+      <mat-form-field>
+        <mat-label>Type your notes here...</mat-label>
+        <textarea #notesTextarea
+                  matInput
+                  cdkTextareaAutosize
+                  #autosize="cdkTextareaAutosize"
+                  cdkAutosizeMinRows="5"
+                  cdkAutosizeMaxRows="40"></textarea>
+      </mat-form-field>
+    </div>
+    <div id="image-container"></div>
     <app-drawing #drawingComponent></app-drawing>
   </div>
+
+
 </div>

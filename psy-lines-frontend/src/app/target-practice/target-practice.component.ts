@@ -2,9 +2,7 @@ import {
   AfterViewInit,
   Component,
   ElementRef,
-  EventEmitter,
   HostListener,
-  Output,
   Renderer2,
   ViewChild
 } from '@angular/core';
@@ -19,6 +17,7 @@ import {DrawingService} from "../shared/drawing/drawing.service";
 export class TargetPracticeComponent implements AfterViewInit {
 
   @ViewChild('drawingComponent') drawingComponent!: any;
+  @ViewChild('notesTextarea') notesTextarea!: ElementRef;
 
   colors = [
     { name: 'Black', value: '#000000', isDark: true },
@@ -52,7 +51,14 @@ export class TargetPracticeComponent implements AfterViewInit {
       );
     });
   }
-  @HostListener('document:touchmove', ['$event'])
+
+
+  saveDrawingAndNotes(): void {
+    const notes = this.notesTextarea.nativeElement.value;
+    this.drawingComponent.saveDrawingNotes(notes);
+  }
+
+  @HostListener('touchmove', ['$event'])
   preventTouchMove(event: TouchEvent): void {
     event.preventDefault();
   }

@@ -2,7 +2,10 @@ import {AfterViewInit, Component, ElementRef, HostListener, ViewChild} from '@an
 import {getStroke} from "perfect-freehand";
 import {DrawingService, Stroke} from "./drawing.service";
 
-
+export interface DrawingNotes {
+  drawingDataURL: string;
+  notes: string;
+}
 
 @Component({
   selector: 'app-drawing',
@@ -20,17 +23,12 @@ export class DrawingComponent implements AfterViewInit {
   private offscreenContext!: OffscreenCanvasRenderingContext2D;
 
 
-
   constructor(private drawingService: DrawingService) {}
 
 
   ngAfterViewInit(): void {
     this.canvas = this.canvasRef.nativeElement!;
     this.context = this.canvas.getContext('2d')!;
-
-
-    this.canvas.width = this.canvas.width * 2.25;
-    this.canvas.height = this.canvas.height * 2.25;
 
     this.offscreenCanvas = new OffscreenCanvas(this.canvas.width, this.canvas.height);
     this.offscreenContext = this.offscreenCanvas.getContext('2d')!;
@@ -60,6 +58,19 @@ export class DrawingComponent implements AfterViewInit {
 
     this.updateMainCanvas();
   }
+
+  saveDrawingNotes(notes: string): void {
+    const dataUrl = this.canvas.toDataURL();
+     const drawingNotes: DrawingNotes = {
+      drawingDataURL: dataUrl,
+      notes: notes
+     };
+
+     let data = JSON.stringify(drawingNotes);
+
+    localStorage.setItem('drawingNotes', data);
+  }
+
 
   rescaleAndRedraw(oldWidth: number, oldHeight: number): void {
     // Calculate scale ratios
@@ -176,11 +187,11 @@ export class DrawingComponent implements AfterViewInit {
 
 
 
-  @HostListener('pointerup')
+  @HostListener('pointerup', ['$event'])
   handlePointerUp(): void {
     this.isDrawing = false;
     this.drawingService.endStroke();
-    this.redrawOffscreenCanvas();  // Add this line to redraw the offscreen canvas when a stroke is completed
+    this.redrawOffscreenCanvas();
     this.points = [];
   }
 
@@ -199,12 +210,13 @@ export class DrawingComponent implements AfterViewInit {
   handlePointerMove(event: PointerEvent): void {
     if (!this.isDrawing) return;
     console.log('Pointer move triggered');
-    event.preventDefault();
     const point = { x: event.offsetX, y: event.offsetY, pressure: event.pressure ?? 0.5 };
     this.points.push(point);
     this.drawingService.addToStroke(point);
     this.drawStroke();
+
   }
+
 
   drawStroke(): void {
     // Clear the main canvas
@@ -248,22 +260,6 @@ export class DrawingComponent implements AfterViewInit {
         }
         this.context.fill();
       }
-    }
-  }
-
-
-  @HostListener('pointerleave')
-  handlePointerLeave(): void {
-    this.isDrawing = false;
-    this.handlePointerUp();
-  }
-
-  @HostListener('pointerenter', ['$event'])
-  handlePointerEnter(event: PointerEvent): void {
-    // Check if the primary button (usually the left button) is pressed
-    if (event.buttons === 1) {
-      this.isDrawing = true;
-      this.points.push({ x: event.offsetX, y: event.offsetY, pressure: event.pressure ?? 0.5 });
     }
   }
 }

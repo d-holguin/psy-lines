@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import {Injectable} from '@angular/core';
 import {StrokeOptions} from "perfect-freehand";
 
 
@@ -15,7 +15,6 @@ export class DrawingService {
   private currentStroke: Stroke | null = null;
   private strokeHistory: Stroke[] = [];
   private redoStack: Stroke[] = [];
-  private canvasDimensions: { width: number; height: number } = { width: 0, height: 0 };
   private currentColor: string = '#000000';
 
 
@@ -26,13 +25,14 @@ export class DrawingService {
     streamline: 0.5,
   };
 
-  constructor() { }
+  constructor() {
+  }
 
   setColorHex(hex: string) {
     this.currentColor = hex;
   }
 
-  setStrokeSize(newSize: number){
+  setStrokeSize(newSize: number) {
     this.options.size = newSize;
   }
 
@@ -61,7 +61,6 @@ export class DrawingService {
     offscreenCanvas.width = canvas.width;
     offscreenCanvas.height = canvas.height;
 
-    this.canvasDimensions = { width: canvas.width, height: canvas.height };
 
   }
 
@@ -95,7 +94,7 @@ export class DrawingService {
 
 
   startStroke(point: { x: number; y: number; pressure?: number }): void {
-    this.currentStroke = { points: [point], color: this.currentColor };
+    this.currentStroke = {points: [point], color: this.currentColor};
   }
 
   addToStroke(point: { x: number; y: number; pressure?: number }): void {
@@ -111,7 +110,11 @@ export class DrawingService {
     }
   }
 
-  getStrokeData(): { strokes: Stroke[], currentPoints: { x: number; y: number; pressure?: number }[] | null, currentColor: string | null } {
+  getStrokeData(): {
+    strokes: Stroke[],
+    currentPoints: { x: number; y: number; pressure?: number }[] | null,
+    currentColor: string | null
+  } {
     return {
       strokes: this.strokeHistory,
       currentPoints: this.currentStroke ? this.currentStroke.points : null,
